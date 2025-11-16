@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { RollResult, AdvantageState, CriticalState } from '../types';
 import { D20Icon } from './icons/D20Icon';
@@ -44,13 +45,15 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onGenerate
     }).reduce((prev, curr) => <>{prev}, {curr}</>);
   };
   
-  const handleGenerateClick = () => {
+  const handleGenerateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!context.trim()) return;
     onGenerateFlavor(result.id, context);
     setIsAddingContext(false);
   };
 
-  const handleSaveClick = () => {
+  const handleSaveSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!saveName.trim()) return;
     onSaveRoll(result.id, saveName);
     setIsSaving(false);
@@ -120,7 +123,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onGenerate
             </div>
         ) : result.criticalState !== CriticalState.None ? (
             isAddingContext ? (
-                <div className="space-y-2 animate-fade-in-down">
+                <form onSubmit={handleGenerateSubmit} className="space-y-2 animate-fade-in-down">
                     <label htmlFor={`context-${result.id}`} className="text-sm font-bold text-amber-200">
                     What are you trying to do?
                     </label>
@@ -133,16 +136,16 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onGenerate
                     placeholder="e.g., Attack the goblin with my greatsword"
                     />
                     <div className="flex justify-end gap-2">
-                        <button onClick={() => setIsAddingContext(false)} className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded transition-colors">Cancel</button>
+                        <button type="button" onClick={() => setIsAddingContext(false)} className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded transition-colors">Cancel</button>
                         <button 
-                            onClick={handleGenerateClick} 
+                            type="submit"
                             disabled={!context.trim()}
                             className="px-3 py-1 text-xs bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold rounded disabled:opacity-50 transition-colors"
                         >
                             Generate
                         </button>
                     </div>
-                </div>
+                </form>
             ) : (
                 <div className="text-center">
                     <button 
@@ -157,7 +160,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onGenerate
       </div>
 
       {isSaving && (
-        <div className="mt-4 pt-4 border-t border-slate-700 space-y-2 animate-fade-in-down">
+        <form onSubmit={handleSaveSubmit} className="mt-4 pt-4 border-t border-slate-700 space-y-2 animate-fade-in-down">
             <label htmlFor={`save-name-${result.id}`} className="text-sm font-bold text-amber-200">
             Save Roll As...
             </label>
@@ -170,16 +173,16 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onGenerate
                 autoFocus
             />
             <div className="flex justify-end gap-2">
-                <button onClick={handleCancelSave} className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded transition-colors">Cancel</button>
+                <button type="button" onClick={handleCancelSave} className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded transition-colors">Cancel</button>
                 <button 
-                    onClick={handleSaveClick} 
+                    type="submit" 
                     disabled={!saveName.trim()}
                     className="px-3 py-1 text-xs bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold rounded disabled:opacity-50 transition-colors"
                 >
                     Save
                 </button>
             </div>
-        </div>
+        </form>
       )}
     </div>
   );

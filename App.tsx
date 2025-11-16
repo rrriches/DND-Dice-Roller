@@ -6,9 +6,11 @@ import { DiceButton } from './components/DiceButton';
 import { ResultDisplay } from './components/ResultDisplay';
 import { HistoryPanel } from './components/HistoryPanel';
 import { SavedRollsPanel } from './components/SavedRollsPanel';
+import { ApiKeyBanner } from './components/ApiKeyBanner';
 
 const STANDARD_DICE = [4, 6, 8, 10, 12, 20];
-const LOCAL_STORAGE_KEY = 'dnd-dice-roller-presets';
+const SAVED_ROLLS_STORAGE_KEY = 'dnd-dice-roller-presets';
+const API_KEY_STORAGE_KEY = 'dnd-dice-roller-api-key';
 
 const App: React.FC = () => {
   const [dice, setDice] = useState<Die[]>([]);
@@ -20,25 +22,40 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<RollResult[]>([]);
   const [isRolling, setIsRolling] = useState<boolean>(false);
   const [savedRolls, setSavedRolls] = useState<SavedRoll[]>([]);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false);
 
   useEffect(() => {
     try {
-        const storedRolls = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const storedRolls = localStorage.getItem(SAVED_ROLLS_STORAGE_KEY);
         if (storedRolls) {
             setSavedRolls(JSON.parse(storedRolls));
         }
+        const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+        if (storedKey) {
+            setApiKey(storedKey);
+        }
     } catch (error) {
-        console.error("Failed to load saved rolls from localStorage", error);
+        console.error("Failed to load data from localStorage", error);
     }
   }, []);
 
   useEffect(() => {
     try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedRolls));
+        localStorage.setItem(SAVED_ROLLS_STORAGE_KEY, JSON.stringify(savedRolls));
     } catch (error) {
         console.error("Failed to save rolls to localStorage", error);
     }
   }, [savedRolls]);
+
+  const handleSaveApiKey = (key: string) => {
+    setApiKey(key);
+    try {
+      localStorage.setItem(API_KEY_STORAGE_KEY, key);
+    } catch (error) {
+        console.error("Failed to save API key to localStorage", error);
+    }
+  };
 
 
   const formatRollString = useCallback(() => {
@@ -98,7 +115,7 @@ const App: React.FC = () => {
     const targetResult = history.find(r => r.id === resultId) ?? (lastResult?.id === resultId ? lastResult : null);
     if (!targetResult) return;
 
-    const flavorText = await getFlavorText(targetResult.criticalState, context);
+    const flavorText = await getFlavorText(apiKey, targetResult.criticalState, context);
 
     const findAndSetFlavor = (r: RollResult) => r.id === resultId ? { ...r, flavorText, isFlavorTextLoading: false } : r;
 
@@ -139,6 +156,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col">
+      {!apiKey && !isBannerDismissed && <ApiKeyBanner onSaveApiKey={handleSaveApiKey} onDismiss={() => setIsBannerDismissed(true)} />}
       <header className="text-center p-6 border-b border-amber-500/20 shadow-lg">
         <h1 className="font-medieval text-4xl text-amber-300 tracking-wider">Dice Roller</h1>
         <p className="text-slate-400">For Dungeons & Dragons 5e</p>

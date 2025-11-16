@@ -1,20 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import { CriticalState } from "../types";
 
-const getGeminiApiKey = (): string => {
-    const key = process.env.API_KEY;
-    if (!key) {
-        throw new Error("API_KEY environment variable not set.");
-    }
-    return key;
-};
-
-const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() });
-
-export const getFlavorText = async (criticalState: CriticalState, context: string): Promise<string> => {
+export const getFlavorText = async (apiKey: string, criticalState: CriticalState, context: string): Promise<string> => {
   if (criticalState === CriticalState.None) {
     return "";
   }
+  
+  if (!apiKey) {
+      return "API key not provided. Please set your Gemini API key to generate flavor text.";
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   const action = criticalState === CriticalState.Success
     ? "a spectacular and heroic critical success"
@@ -40,6 +36,9 @@ Description:`;
     return response.text.trim();
   } catch (error) {
     console.error("Error fetching flavor text from Gemini:", error);
+    if (error instanceof Error && error.message.includes('API key not valid')) {
+        return "Your Gemini API key is not valid. Please check and save it again.";
+    }
     return "The weave of magic sputters, and the outcome remains clouded...";
   }
 };
