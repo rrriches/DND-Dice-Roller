@@ -1,0 +1,5 @@
+{
+  "name": "D&D 5e Dice Roller",
+  "description": "An advanced dice roller for Dungeons & Dragons 5th Edition, featuring standard and custom dice, advantage/disadvantage, modifiers, and AI-powered flavor text for critical rolls using the Gemini API.",
+  "requestFramePermissions": []
+}
